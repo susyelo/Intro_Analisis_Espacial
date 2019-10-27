@@ -1,0 +1,49 @@
+---
+title: "Intro I: Análisis espaciales en R"
+author: 
+- name:  Susy Echeverría-Londoño 
+  affiliation: Investigadora asociada, Imperial College London
+
+#date: "October 27, 2019"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Pre-requisitos e instalación de paquetes
+
+Lista de paquetes espaciales en R [https://cran.r-project.org/web/views/Spatial.html](https://cran.r-project.org/web/views/Spatial.html)
+
+```{r cars, eval=FALSE, include=TRUE, echo=TRUE}
+install.packages(c("rgdal", "maptools", "raster", "sp", "sf"))
+```
+Paquetes generales: 
+
+ * rgdal: 
+ * maptools: 
+ * raster: 
+ * sp: 
+ * sf: 
+ 
+
+## Organizacion y creacion de proyectos en R
+
+[Guide to reproducible code (British Ecology Society)](https://www.britishecologicalsociety.org/wp-content/uploads/2017/12/guide-to-reproducible-code.pdf)
+
+
+![](./figs/Folder_structure.png)
+
+
+# Sistema de información geográfica (SIG)
+
+# Objetos espaciales en R
+## Datos vectoriales
+## Datos raster
