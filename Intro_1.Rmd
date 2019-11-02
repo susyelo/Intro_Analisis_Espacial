@@ -1,5 +1,5 @@
 ---
-title: "Intro I: Análisis espaciales en R"
+title: "Objetos espaciales en R"
 author: 
 - name:  Susy Echeverría-Londoño 
   affiliation: Investigadora asociada, Imperial College London
@@ -27,22 +27,96 @@ install.packages(c("rgdal", "maptools", "raster", "sp", "sf"))
 ```
 Paquetes generales: 
 
- * rgdal: 
  * maptools: 
  * raster: 
- * sp: 
- * sf: 
+ * sp: clases de objetos espaciales (Pebesma & Bivand, 2018). 
+ * rgdal: lectura y escritura de datos espaciales (Bivand et al., 2017). 
+ * rgeos: operaciones espaciales (Bivand & Rundel, 2017). 
+ * sf: combinación de sp, rgeos y rgdal (Pebesma, 2017)
  
 
-## Organizacion y creacion de proyectos en R
+## Organización y creación de proyectos en R
 
 [Guide to reproducible code (British Ecology Society)](https://www.britishecologicalsociety.org/wp-content/uploads/2017/12/guide-to-reproducible-code.pdf)
 
+1. Crear un nuevo projecto en R
+2. Crear carpetas básicas (e.g., ./data, ./figs, ./functions, ...)
+
+``` 
+└── my_awesome_project
+    ├── src
+    ├── output
+    ├── data
+    │   ├── raw
+    │   └── processed
+    ├── README.md
+    ├── run_analyses.R 
+    └── .gitignore
+
+``` 
+Fuente: https://www.r-bloggers.com/structuring-r-projects/
 
 ![](./figs/Folder_structure.png)
 
+# Representación simple de datos espaciales
 
-# Sistema de información geográfica (SIG)
+## Tipos básicos de R
+
+* Números ``` 1 or 2 or 4000 or 10e9... ```
+* Cadenas (or characters) ``` "Hola mundo" ```
+* Operadores lógicos ``` "TRUE" or "FALSE" ```
+* Factores ``` factor("2") factor("segundo") ```
+* Vectores ``` c(1, 2) or c("Hola mundo", "como estas") ```
+* Matrices
+
+```{r}
+matrix(data = c(c(1,2), c("Hola mundo", "Como estas")), nrow = 2, ncol = 2) 
+```
+
+* Data frames
+
+```{r}
+data.frame(Num = c(1,2), Exp = c("Hola mundo", "Como estas"))
+```
+
+## Puntos geográficos
+
+```{r}
+
+x <- c(-73)
+y <- c(7.13)
+
+## Colombia continental
+## Punta gallinas (lat= 12.46, lon = -71.67)
+## Isla San José, Rio Negro Guainia Colombia (1.34, -66.7)
+## Cabo Manglares (1.65, -79.01)
+## Leticia (-4.23, -69.95)
+plot(x, y, xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
+abline(h = 4.71, v = -74.07)
+```
+
+
+```{r}
+## Quibdo 5.69, -76.65 (max 851.7 mm)
+## Medellin 6.24, -75.76 (226.7 mm)
+## Bogota 4.71, -74.07 (119 mm)
+## Bucaramanga 7.13, -73 (149 mm)
+lat = c(-76.65, -75.76, -74.07, -73)
+lon = c(5.69, 6.24, 4.71, 7.13)
+ciudades = cbind(lat, lon)
+precip = c(852, 227, 119, 149)
+
+psize <- 1 + precip/500
+plot(ciudades, cex=psize, pch=20, col='red', main='Precipitación', xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
+```
+
+
+## Lineas
+
+## Poligonos
+
+
+
 
 # Objetos espaciales en R
 ## Datos vectoriales
