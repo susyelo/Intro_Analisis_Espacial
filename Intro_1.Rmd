@@ -23,16 +23,15 @@ knitr::opts_chunk$set(echo = TRUE)
 Lista de paquetes espaciales en R [https://cran.r-project.org/web/views/Spatial.html](https://cran.r-project.org/web/views/Spatial.html)
 
 ```{r cars, eval=FALSE, include=TRUE, echo=TRUE}
-install.packages(c("rgdal", "maptools", "raster", "sp", "sf"))
+install.packages(c("rgdal","rgeos", "maptools", "raster", "sp", "sf"))
 ```
 Paquetes generales: 
 
- * maptools: 
- * raster: 
- * sp: clases de objetos espaciales (Pebesma & Bivand, 2018). 
- * rgdal: lectura y escritura de datos espaciales (Bivand et al., 2017). 
- * rgeos: operaciones espaciales (Bivand & Rundel, 2017). 
- * sf: combinación de sp, rgeos y rgdal (Pebesma, 2017)
+ * maptools: manipulación de datos geográficos
+ * raster: Lectura, escritura, manipulación, análisis y modelamiento de datos espaciales en cuadrículas. 
+ * sp: clases y métodos de datos espaciales (Pebesma & Bivand, 2018). 
+ * rgdal: provee enlaces a la libreria geoespacial GDAL y acceso a las operaciones de proyección y transformación de la libreria PROJ4 (Bivand et al., 2017). 
+ * sf: combinación estandarizada de funciones en sp, rgeos y rgdal para la manipulación de datos espaciales vectorizados  (Pebesma, 2017)
  
 
 ## Organización y creación de proyectos en R
@@ -95,7 +94,6 @@ plot(x, y, xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
 abline(h = 4.71, v = -74.07)
 ```
 
-
 ```{r}
 ## Quibdo 5.69, -76.65 (max 851.7 mm)
 ## Medellin 6.24, -75.76 (226.7 mm)
@@ -110,10 +108,90 @@ psize <- 1 + precip/500
 plot(ciudades, cex=psize, pch=20, col='red', main='Precipitación', xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
 ```
 
+https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
 
-## Lineas
+```{r}
+library(tidyverse)
+ciudades2 <- data.frame(x = lon, y = lon, precip = precip)
 
-## Poligonos
+ciudades2 %>% 
+ggplot(aes(x = lat, y = lon)) +
+  geom_point(size = 1 + precip/500) +
+  xlim(c(-79.01, -66.7)) +
+  ylim(c(-4.23, 12.46))
+  
+```
+
+### Usando el paquete "sf"
+
+```{r}
+library(sf)
+
+## Quibdo 5.69, -76.65 (max 851.7 mm)
+## Medellin 6.24, -75.76 (226.7 mm)
+## Bogota 4.71, -74.07 (119 mm)
+## Bucaramanga 7.13, -73 (149 mm)
+
+# Coleccion de rasgos simples (Simple features collection, sfc)
+# Crear varios sf
+p1 <- st_point(c(5.69, -76.65))
+p2 <- st_point(c(6.24,  -75.76))
+p3 <- st_point(c(4.71, -74.07))
+p4 <- st_point(c(7.13, -73))
+
+# Juntar varios puntos en un sfc 
+ciudades_points <- st_sfc(p1, p2, p3, p4, crs = 4326)
+
+ciudades_info <- data.frame(num = 1:nrow(ciudades2), nombre = c("Quibdo", "Medellin", "Bogota", "Bucaramanga"), precip = ciudades2$precip)
+
+ciudades_geo <- st_sf(ciudades_info, geometry = ciudades_points)
+```
+
+
+```{r}
+plot(ciudades_geo, axes = TRUE)
+```
+
+
+```{r}
+plot(st_geometry(ciudades_geo), axes = TRUE)
+plot(ciudades_geo["precip"], axes = TRUE, pwd = 16)
+
+```
+
+```{r}
+ciudades_geo[ciudades_geo$nombre == "Quibdo",]
+
+plot(st_geometry(ciudades_geo[ciudades_geo$nombre == "Quibdo" | ciudades_geo$nombre == "Medellin" ,]))
+
+ciudades_geo %>% 
+  filter(nombre == "Quibdo" | nombre == "Medellin") %>% 
+  st_geometry() %>% 
+  plot()
+```
+
+```{r}
+library(mapview)
+
+mapview(ciudades_geo["nombre"])
+mapview(ciudades_geo["precip"])
+
+```
+
+
+### Lineas 
+### Polígonos
+
+## Rasters 
+
+- Datos espaciales en cuadrículas ("gridded data")
+
+
+## Vectores
+
+### Puntos geográficos
+### Lineas 
+### Polígonos
 
 
 
