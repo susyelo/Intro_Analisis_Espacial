@@ -57,25 +57,44 @@ Fuente: https://www.r-bloggers.com/structuring-r-projects/
 
 ![](./figs/Folder_structure.png)
 
+## Ejercicio # 1:
+
+- Crear un projecto de R
+- Crear carpetas básicas para la práctica
+- Abrir el projecto
+- Crear un 'R script'
+- Crear etiquetas como `librerias` y `datos` dentro del script `(shortcut: Crtl+Shift+R)`
+
 # Representación simple de datos espaciales
 
 ## Tipos básicos de R
 
-* Números ``` 1 or 2 or 4000 or 10e9... ```
-* Cadenas (or characters) ``` "Hola mundo" ```
-* Operadores lógicos ``` "TRUE" or "FALSE" ```
-* Factores ``` factor("2") factor("segundo") ```
-* Vectores ``` c(1, 2) or c("Hola mundo", "como estas") ```
+* Números
+
+``` 1 or 2 or 4000 or 10e9... ```
+
+* Cadenas (or characters) 
+
+``` "Hola mundo" ```
+
+* Operadores lógicos 
+
+``` "TRUE" or "FALSE" ```
+
+* Vectores 
+
+``` c(1, 2) or c("uno", "dos") ```
+
 * Matrices
 
 ```{r}
-matrix(data = c(c(1,2), c("Hola mundo", "Como estas")), nrow = 2, ncol = 2) 
+matrix(data = c(c(1,2), c("Bucaramanga", "Bogotá")), nrow = 2, ncol = 2) 
 ```
 
 * Data frames
 
 ```{r}
-data.frame(Num = c(1,2), Exp = c("Hola mundo", "Como estas"))
+data.frame(Num = c(1,2), Nombre = c("Bucaramanga", "Bogotá"))
 ```
 
 ## Puntos geográficos
@@ -91,6 +110,7 @@ y <- c(7.13)
 ## Cabo Manglares (1.65, -79.01)
 ## Leticia (-4.23, -69.95)
 plot(x, y, xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
+# Bogotá
 abline(h = 4.71, v = -74.07)
 ```
 
@@ -110,9 +130,9 @@ plot(ciudades, cex=psize, pch=20, col='red', main='Precipitación', xlim = c(-79
 
 https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
-ciudades2 <- data.frame(x = lon, y = lon, precip = precip)
+ciudades2 <- data.frame(x = lon, y = lat, precip = precip, nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"))
 
 ciudades2 %>% 
 ggplot(aes(x = lat, y = lon)) +
@@ -121,6 +141,45 @@ ggplot(aes(x = lat, y = lon)) +
   ylim(c(-4.23, 12.46))
   
 ```
+
+```{r}
+library(sp)
+library(mapview)
+library(tmap)
+
+ciudades_geo <- ciudades2
+coordinates(ciudades_geo) <- ~x+y
+```
+
+```{r}
+class(ciudades_geo)
+```
+
+```{r}
+mapview(ciudades_geo, zcol = "nombre")
+```
+
+## Projecciones
+### WGS84
+```{r}
+proj4string(ciudades_geo) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+mapview(ciudades_geo, zcol = "nombre")
+```
+### Check the BIEN projection
+
+## Sistema de coordenadas 
+### longlat
+### eck4 (what is this? from World)
+
+## Ejercicio #2: 
+
+- Busca en internet las coordenadas de 3 ciudades
+- Crear un data frame con el nombre de la ciudad y las coordenadas
+- Crear una gráfica de los puntos con los límites deseados usando plot o ggplot 
+- Convertir el data frame en `SpatialPointsDataFrame` usando la función
+- Graficar los puntos usando mapview con y sin proyección geográfica
+
+## Include the map (vectors)
 
 ### Usando el paquete "sf"
 
@@ -142,7 +201,7 @@ p4 <- st_point(c(7.13, -73))
 # Juntar varios puntos en un sfc 
 ciudades_points <- st_sfc(p1, p2, p3, p4, crs = 4326)
 
-ciudades_info <- data.frame(num = 1:nrow(ciudades2), nombre = c("Quibdo", "Medellin", "Bogota", "Bucaramanga"), precip = ciudades2$precip)
+ciudades_info <- data.frame(num = 1:nrow(ciudades2), nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"), precip = ciudades2$precip)
 
 ciudades_geo <- st_sf(ciudades_info, geometry = ciudades_points)
 ```
