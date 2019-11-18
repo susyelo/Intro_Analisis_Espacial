@@ -149,8 +149,13 @@ ggplot(aes(x = lon, y = lat)) +
   ylim(c(-4.23, 12.46))
   
 ```
+## Ejercicio
 
-# Objetos espaciales
+- Busca en internet las coordenadas de 3 ciudades y la temperatura media anual
+- Crea un data frame con el nombre de la ciudad y las coordenadas
+- Crea una gráfica de los puntos con los límites deseados usando plot o ggplot 
+
+# Conceptos espaciales
 
 ## Vectores
 
@@ -174,7 +179,7 @@ ciudades_geo
 mapview(ciudades_geo, zcol = "nombre")
 ```
 
-## Proyecciones y sistema de coordenadas
+## Proyecciones
 
 Forma en que los datos espaciales son "aplanados" en un espacio 2D
 
@@ -287,12 +292,9 @@ plot(Col_poly2, col = "orange", axes = TRUE)
 plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
 ```
 
-## Ejercicio #2: 
+## Ejercicio 
 
-- Busca en internet las coordenadas de 3 ciudades
-- Crea un data frame con el nombre de la ciudad y las coordenadas
-- Crea una gráfica de los puntos con los límites deseados usando plot o ggplot 
-- Convierte el data frame en `SpatialPointsDataFrame`
+- Convierte el data frame del ejercicio anterior en un `SpatialPointsDataFrame`
 - Grafíca los puntos con diferentes proyecciones geográficas sobre un mapa de polígonos
 
 
@@ -303,24 +305,23 @@ plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, ad
 
 ![](./figs/single_multiband.png)
 
-<img src="http://www.neonscience.org/sites/default/files/images/dc-spatial-raster/raster_concept.png" style="width: 80%"/>
+```{r}
+# <img src="http://www.neonscience.org/sites/default/files/images/dc-spatial-raster/raster_concept.png" style="width: 80%"/>
+```
 
 Fuente: National Ecological Observatory Network (NEON)
 
 ### Resolución espacial
 
-Tamano de cada cuadrícula (usualmente en metros)
+Tamaño de cada cuadrícula (usualmente en metros)
 
 ![](./figs/raster_resolution.png)
 
 Fuente: National Ecological Observatory Network (NEON)
 
-
-In this exercise, we are going to use raster data that represent 'bioclimatic variables' from the WorldClim database (http://www.worldclim.org, Hijmans et al., 2004)
-
 ### Datos climáticos
 
-Base de datos de Worldclim
+Variables bioclimáticas de la base de datos de Worldclim (Hijmans et al., 2004)
 http://worldclim.org/bioclim
 
 * BIO1 = Annual Mean Temperature
@@ -335,9 +336,8 @@ http://worldclim.org/bioclim
 * BIO18 = Precipitation of Warmest Quarter
 * BIO19 = Precipitation of Coldest Quarter
 
-```{r}
+```{r eval=FALSE, include=TRUE}
 library(dismo)
-library(raster)
 # Descargar los datos directamente
 bio_ly <- getData("worldclim", var="bio", res=10, path="./data/")
 
@@ -357,63 +357,71 @@ http://worldclim.org/bioclim
 
 ```{r}
 # Desde una carpeta
+library(raster)
 precipRast <- raster("./data/wc10/bio12.bil")
 precipRast 
 ```
 
-
-
-### Introducción al paquete "sf"
+#### Graficar raster
 
 ```{r}
-library(sf)
+plot(precipRast)
 
-## Quibdo 5.69, -76.65 (max 851.7 mm)
-## Medellin 6.24, -75.76 (226.7 mm)
-## Bogota 4.71, -74.07 (119 mm)
-## Bucaramanga 7.13, -73 (149 mm)
-
-# Coleccion de rasgos simples (Simple features collection, sfc)
-# Crear varios sf
-p1 <- st_point(c(5.69, -76.65))
-p2 <- st_point(c(6.24,  -75.76))
-p3 <- st_point(c(4.71, -74.07))
-p4 <- st_point(c(7.13, -73))
-
-# Juntar varios puntos en un sfc 
-ciudades_points <- st_sfc(p1, p2, p3, p4, crs = 4326)
-
-ciudades_info <- data.frame(num = 1:nrow(ciudades2), nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"), precip = ciudades2$precip)
-
-ciudades_geo <- st_sf(ciudades_info, geometry = ciudades_points)
-```
-
-
-```{r}
-plot(ciudades_geo, axes = TRUE)
-```
-
-
-```{r}
-plot(st_geometry(ciudades_geo), axes = TRUE)
-plot(ciudades_geo["precip"], axes = TRUE, pwd = 16)
-
+## Usando la función spplot del paquete raster
+spplot(precipRast)
 ```
 
 ```{r}
-ciudades_geo[ciudades_geo$nombre == "Quibdo",]
-
-plot(st_geometry(ciudades_geo[ciudades_geo$nombre == "Quibdo" | ciudades_geo$nombre == "Medellin" ,]))
-
-ciudades_geo %>% 
-  filter(nombre == "Quibdo" | nombre == "Medellin") %>% 
-  st_geometry() %>% 
-  plot()
+plot(precipRast, xlim = c(-81,-67), ylim = c(-4,12), axes = TRUE)
+plot(Col_poly, add = TRUE)
 ```
 
 ```{r}
-library(mapview)
+col_ras <- crop(precipRast, Col_poly)
+plot(col_ras, axes = TRUE)
+plot(Col_poly, add = TRUE)
 
-mapview(ciudades_geo["nombre"])
-mapview(ciudades_geo["precip"])
+spplot(col_ras, sp.layout = list("sp.lines", as(Col_poly, "SpatialLines"), col="white"))
 ```
+
+### Extracción de información de rasters
+```{r}
+extract(precipRast, ciudades_geo)
+ciudades_geo$precip_bioclim <- extract(precipRast, ciudades_geo)
+ciudades_geo@data
+```
+
+```{r}
+mapview(col_ras) + mapview(ciudades_geo, zcol = "nombre")
+```
+
+### Cambio de colores y "breaks"
+
+```{r}
+library(RColorBrewer)
+
+preciHist <- hist(log(precipRast), breaks=4)
+preciHist
+
+# Using the raster object with different breaks
+plot(log(precipRast), 
+     breaks = preciHist$breaks,
+     col = brewer.pal(5, "Spectral"))
+
+plot(log(col_ras), 
+     breaks = preciHist$breaks,
+     col = brewer.pal(5, "Spectral"))
+
+plot(Col_poly, add = TRUE)
+```
+
+### Ejercicio
+
+Usando otra capa climática de bioclim (e.g., temperatura anual media): 
+
+- Crear un mapa de con la capa climática usando la extensión espacial de Colombia
+- Extraer la información climatica de cada una de las ciudades usando el objeto `ciudades_geo`
+- Crear nuevos puntos de corte en el raster climático
+- Crear un mapa con los nuevos puntos de corte junto con los puntos geográficos de las ciudades
+
+
