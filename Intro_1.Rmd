@@ -5,13 +5,21 @@ author:
   affiliation: Investigadora asociada, Imperial College London
 
 #date: "October 27, 2019"
-output:
-  prettydoc::html_pretty:
-    theme: cayman
-    highlight: github
-    toc: true
-    toc_depth: 2
-    number_sections: true
+#output:
+#  prettydoc::html_pretty:
+#    theme: cayman
+#    highlight: github
+#    toc: true
+#    toc_depth: 2
+#    number_sections: true
+
+output: 
+  html_document: 
+    highlight: kate
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -119,9 +127,9 @@ abline(h = 4.71, v = -74.07)
 ## Medellin 6.24, -75.76 (226.7 mm)
 ## Bogota 4.71, -74.07 (119 mm)
 ## Bucaramanga 7.13, -73 (149 mm)
-lat = c(-76.65, -75.76, -74.07, -73)
-lon = c(5.69, 6.24, 4.71, 7.13)
-ciudades = cbind(lat, lon)
+lon = c(-76.65, -75.76, -74.07, -73)
+lat = c(5.69, 6.24, 4.71, 7.13)
+ciudades = cbind(lon, lat)
 precip = c(852, 227, 119, 149)
 
 psize <- 1 + precip/500
@@ -135,12 +143,18 @@ library(tidyverse)
 ciudades2 <- data.frame(x = lon, y = lat, precip = precip, nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"))
 
 ciudades2 %>% 
-ggplot(aes(x = lat, y = lon)) +
+ggplot(aes(x = lon, y = lat)) +
   geom_point(size = 1 + precip/500) +
   xlim(c(-79.01, -66.7)) +
   ylim(c(-4.23, 12.46))
   
 ```
+
+# Objetos espaciales
+
+## Vectores
+
+### Puntos geográficos
 
 ```{r}
 library(sp)
@@ -153,35 +167,203 @@ coordinates(ciudades_geo) <- ~x+y
 
 ```{r}
 class(ciudades_geo)
+ciudades_geo
 ```
 
 ```{r}
 mapview(ciudades_geo, zcol = "nombre")
 ```
 
-## Projecciones
-### WGS84
-```{r}
-proj4string(ciudades_geo) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-mapview(ciudades_geo, zcol = "nombre")
-```
-### Check the BIEN projection
+## Proyecciones y sistema de coordenadas
 
-## Sistema de coordenadas 
-### longlat
-### eck4 (what is this? from World)
+Forma en que los datos espaciales son "aplanados" en un espacio 2D
+
+<img src="./figs/projections_example.png" style="width: 60%"/>
+
+**"Alineación incorrecta de dos objetos espaciales = diferentes proyecciones"**
+
+<img src="./figs/USMapDifferentProjections.jpg" style="width: 70%"/>
+
+Fuente: National Ecological Observatory Network (NEON)
+
+## Sistema de coordenadas
+<img src="./figs/projections_example_2.png" style="width: 50%"/>
+
+Fuente: Maning Sambale
+
+
+```{r}
+proj4string(ciudades_geo) <- "+proj=longlat +datum=WGS84"
+mapview(ciudades_geo, zcol = "nombre")
+ciudades_geo
+```
+
+## Extensión espacial
+
+Coordenadas X y Y de las esquinas en el espacio geográfico
+![](./figs/spatial_extent.png)
+
+Fuente: National Ecological Observatory Network (NEON)
+
+## Polígonos
+
+```{r}
+library(maptools)
+data("wrld_simpl")
+
+print(wrld_simpl)
+```
+
+```{r}
+plot(wrld_simpl)
+```
+
+### Filtración o subset (e.g., Colombia)
+```{r}
+Col_inx <- which(wrld_simpl$NAME == "Colombia")
+Col_poly <- wrld_simpl[Col_inx,]
+
+plot(Col_poly)
+plot(ciudades_geo, add = TRUE, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 16)
+```
+
+```{r}
+Col_inx <- which(wrld_simpl$NAME == "Colombia")
+Col_poly <- wrld_simpl[Col_inx,]
+
+plot(Col_poly, axes = TRUE, col = "lightyellow")
+plot(ciudades_geo, col = "orange", cex = 1 + ciudades_geo$precip/500, pch = 16, add = TRUE)
+```
+
+```{r}
+plot(wrld_simpl, xlim = c(-81,-67), ylim = c(-4,12), axes = TRUE, col = "lightyellow")
+plot(ciudades_geo, col = "orange", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
+```
+
+```{r}
+plot(wrld_simpl, xlim = c(-81,-67), ylim = c(-4,12), axes = TRUE, col = "lightyellow")
+plot(Col_poly, col = "orange", add = TRUE)
+plot(ciudades_geo, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
+```
+
+```{r}
+mapview(Col_poly, col.regions = "orange") + mapview(ciudades_geo, zcol = "nombre")
+```
+
+## Cambiar la proyección de vectores
+
+Lista de proyecciones disponibles
+```{r eval=FALSE, include=TRUE}
+rgdal:::projInfo()
+```
+
+```{r}
+wrld_simpl2 <- spTransform(wrld_simpl, CRS("+proj=laea"))
+
+par(mfrow = c(1,2))
+plot(wrld_simpl)
+plot(wrld_simpl2)
+```
+
+
+```{r}
+## Lambert Azimuthal Equal Area
+ciudades_geo2 <- spTransform(ciudades_geo, CRS("+proj=laea"))
+
+par(mfrow = c(1,2))
+plot(ciudades_geo, col = "red", pch = 16, axes = TRUE)
+plot(ciudades_geo2, col = "blue", pch = 16, axes = TRUE)
+```
+
+```{r}
+plot(Col_poly, col = "orange", axes = TRUE)
+plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
+```
+
+```{r}
+Col_poly2 <- spTransform(Col_poly, CRS("+proj=laea"))
+
+plot(Col_poly2, col = "orange", axes = TRUE)
+plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
+```
 
 ## Ejercicio #2: 
 
 - Busca en internet las coordenadas de 3 ciudades
-- Crear un data frame con el nombre de la ciudad y las coordenadas
-- Crear una gráfica de los puntos con los límites deseados usando plot o ggplot 
-- Convertir el data frame en `SpatialPointsDataFrame` usando la función
-- Graficar los puntos usando mapview con y sin proyección geográfica
+- Crea un data frame con el nombre de la ciudad y las coordenadas
+- Crea una gráfica de los puntos con los límites deseados usando plot o ggplot 
+- Convierte el data frame en `SpatialPointsDataFrame`
+- Grafíca los puntos con diferentes proyecciones geográficas sobre un mapa de polígonos
 
-## Include the map (vectors)
 
-### Usando el paquete "sf"
+## Rasters 
+
+- Datos espaciales en cuadrículas ("gridded data")
+- Las cuadrículas representan areas de la tierra como pixeles
+
+![](./figs/single_multiband.png)
+
+<img src="http://www.neonscience.org/sites/default/files/images/dc-spatial-raster/raster_concept.png" style="width: 80%"/>
+
+Fuente: National Ecological Observatory Network (NEON)
+
+### Resolución espacial
+
+Tamano de cada cuadrícula (usualmente en metros)
+
+![](./figs/raster_resolution.png)
+
+Fuente: National Ecological Observatory Network (NEON)
+
+
+In this exercise, we are going to use raster data that represent 'bioclimatic variables' from the WorldClim database (http://www.worldclim.org, Hijmans et al., 2004)
+
+### Datos climáticos
+
+Base de datos de Worldclim
+http://worldclim.org/bioclim
+
+* BIO1 = Annual Mean Temperature
+* BIO5 = Max Temperature of Warmest Month
+* BIO6 = Min Temperature of Coldest Month
+* BIO7 = Temperature Annual Range (BIO5-BIO6)
+* BIO8 = Mean Temperature of Wettest Quarter
+* BIO9 = Mean Temperature of Driest Quarter
+* BIO12 = Annual Precipitation
+* BIO16 = Precipitation of Wettest Quarter
+* BIO17 = Precipitation of Driest Quarter
+* BIO18 = Precipitation of Warmest Quarter
+* BIO19 = Precipitation of Coldest Quarter
+
+```{r}
+library(dismo)
+library(raster)
+# Descargar los datos directamente
+bio_ly <- getData("worldclim", var="bio", res=10, path="./data/")
+
+## Group of raster layers
+class(bio_ly)
+
+names(bio_ly)
+
+tempRast <- bio_ly$bio1/10
+precipRast <- bio_ly$bio12
+
+tempRast
+precipRast 
+```
+
+http://worldclim.org/bioclim
+
+```{r}
+# Desde una carpeta
+precipRast <- raster("./data/wc10/bio12.bil")
+precipRast 
+```
+
+
+
+### Introducción al paquete "sf"
 
 ```{r}
 library(sf)
@@ -234,27 +416,4 @@ library(mapview)
 
 mapview(ciudades_geo["nombre"])
 mapview(ciudades_geo["precip"])
-
 ```
-
-
-### Lineas 
-### Polígonos
-
-## Rasters 
-
-- Datos espaciales en cuadrículas ("gridded data")
-
-
-## Vectores
-
-### Puntos geográficos
-### Lineas 
-### Polígonos
-
-
-
-
-# Objetos espaciales en R
-## Datos vectoriales
-## Datos raster
