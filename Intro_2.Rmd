@@ -48,4 +48,55 @@ cycadales <-cycadales[!dups, ]
 nrow(cycadales)
 ```
 
+# Graficar los puntos geográficos
+```{r}
+library(sp)
+library(maptools)
+## convertir en objeto espacial
+cycadales_geo <- cycadales
+coordinates(cycadales_geo)<-~decimalLongitude + decimalLatitude
+
+## Llamar el poligono de Colombia
+data("wrld_simpl")
+Col_inx <- which(wrld_simpl$NAME == "Colombia")
+Col_poly <- wrld_simpl[Col_inx,]
+
+proj4string(cycadales_geo)<-proj4string(wrld_simpl)
+
+plot(Col_poly, col = "lightyellow")
+plot(cycadales_geo, col = "orange", pch = 16, add = TRUE)
+```
+
+
+# Creación de mapas de riqueza
+
+```{r}
+library(letsR)
+## Create presence absence matrix
+xy <- data.frame(x = cycadales$decimalLongitude, y = cycadales$decimalLatitude)
+
+# Matriz de presencia y ausencia de cycadales  ----
+cycadales_grids<-lets.presab.points(xy, cycadales$species, resol=1, xmn = -81, xmx = -67, ymn = -4, ymx = 14)
+cycadales_grids$Richness_Raster[cycadales_grids$Richness_Raster==0]<-NA
+
+par(mfrow = c(1,2))
+plot(Col_poly, col = "lightyellow")
+plot(cycadales_grids$Richness_Raster, add = TRUE)
+
+plot(Col_poly, col = "lightyellow")
+plot(cycadales_geo, col = "orange", pch = 16, add = TRUE)
+
+```
+
+## Rango de distribución
+```{r}
+rangesize <- lets.rangesize(cycadales_grids,
+                            coordinates = "geographic")
+
+centroids <- lets.midpoint(cycadales_grids)
+
+data_plot <- data.frame(centroids[, 2:3], "Range size" = rangesize)
+g <- ggplot(data_plot, aes(y, Range_size))
+g + geom_smooth() + geom_point() + labs(x = "Latitude(y)", y = "Range size")
+```
 
