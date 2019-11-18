@@ -1,0 +1,65 @@
+---
+title: "Misc_code"
+author: "Susy"
+date: "18/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introducción al paquete "sf"
+
+```{r}
+library(sf)
+
+## Quibdo 5.69, -76.65 (max 851.7 mm)
+## Medellin 6.24, -75.76 (226.7 mm)
+## Bogota 4.71, -74.07 (119 mm)
+## Bucaramanga 7.13, -73 (149 mm)
+
+# Coleccion de rasgos simples (Simple features collection, sfc)
+# Crear varios sf
+p1 <- st_point(c(5.69, -76.65))
+p2 <- st_point(c(6.24,  -75.76))
+p3 <- st_point(c(4.71, -74.07))
+p4 <- st_point(c(7.13, -73))
+
+# Juntar varios puntos en un sfc 
+ciudades_points <- st_sfc(p1, p2, p3, p4, crs = 4326)
+
+ciudades_info <- data.frame(num = 1:nrow(ciudades2), nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"), precip = ciudades2$precip)
+
+ciudades_geo <- st_sf(ciudades_info, geometry = ciudades_points)
+```
+
+
+```{r}
+plot(ciudades_geo, axes = TRUE)
+```
+
+
+```{r}
+plot(st_geometry(ciudades_geo), axes = TRUE)
+plot(ciudades_geo["precip"], axes = TRUE, pwd = 16)
+
+```
+
+```{r}
+ciudades_geo[ciudades_geo$nombre == "Quibdo",]
+
+plot(st_geometry(ciudades_geo[ciudades_geo$nombre == "Quibdo" | ciudades_geo$nombre == "Medellin" ,]))
+
+ciudades_geo %>% 
+  filter(nombre == "Quibdo" | nombre == "Medellin") %>% 
+  st_geometry() %>% 
+  plot()
+```
+
+```{r}
+library(mapview)
+
+mapview(ciudades_geo["nombre"])
+mapview(ciudades_geo["precip"])
+```
