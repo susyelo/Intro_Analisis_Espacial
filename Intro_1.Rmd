@@ -109,7 +109,7 @@ data.frame(Num = c(1,2), Nombre = c("Bucaramanga", "Bogotá"))
 
 ```{r}
 
-x <- c(-73)
+x <- c(-73.13)
 y <- c(7.13)
 
 ## Colombia continental
@@ -119,7 +119,7 @@ y <- c(7.13)
 ## Leticia (-4.23, -69.95)
 plot(x, y, xlim = c(-79.01, -66.7), ylim = c(-4.23, 12.46))
 # Bogotá
-abline(h = 4.71, v = -74.07)
+abline(h = 4.60, v = -74.09)
 ```
 
 ```{r}
@@ -127,9 +127,10 @@ abline(h = 4.71, v = -74.07)
 ## Medellin 6.24, -75.76 (226.7 mm)
 ## Bogota 4.71, -74.07 (119 mm)
 ## Bucaramanga 7.13, -73 (149 mm)
-lon = c(-76.65, -75.76, -74.07, -73)
-lat = c(5.69, 6.24, 4.71, 7.13)
+lon = c(-76.65, -75.59, -74.09, -73.13)
+lat = c(5.69, 6.26, 4.60, 7.13)
 ciudades = cbind(lon, lat)
+
 precip = c(852, 227, 119, 149)
 
 psize <- 1 + precip/500
@@ -139,16 +140,17 @@ plot(ciudades, cex=psize, pch=20, col='red', main='Precipitación', xlim = c(-79
 https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
 
 ```{r message=FALSE, warning=FALSE}
-library(tidyverse)
+library(ggplot2)
+
 ciudades2 <- data.frame(x = lon, y = lat, precip = precip, nombre = c("Quibdo", "Medellín", "Bogotá", "Bucaramanga"))
 
-ciudades2 %>% 
-ggplot(aes(x = lon, y = lat)) +
+ggplot(data = ciudades2, aes(x = lon, y = lat)) +
   geom_point(size = 1 + precip/500) +
   xlim(c(-79.01, -66.7)) +
   ylim(c(-4.23, 12.46))
   
 ```
+
 ## Ejercicio
 
 - Busca en internet las coordenadas de 3 ciudades y la temperatura media anual
@@ -164,7 +166,6 @@ ggplot(aes(x = lon, y = lat)) +
 ```{r}
 library(sp)
 library(mapview)
-library(tmap)
 
 ciudades_geo <- ciudades2
 coordinates(ciudades_geo) <- ~x+y
@@ -305,9 +306,7 @@ plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, ad
 
 ![](./figs/single_multiband.png)
 
-```{r}
-# <img src="http://www.neonscience.org/sites/default/files/images/dc-spatial-raster/raster_concept.png" style="width: 80%"/>
-```
+<img src="http://www.neonscience.org/sites/default/files/images/dc-spatial-raster/raster_concept.png" style="width: 80%"/>
 
 Fuente: National Ecological Observatory Network (NEON)
 
