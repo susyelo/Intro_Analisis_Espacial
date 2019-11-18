@@ -1,0 +1,51 @@
+---
+title: "Objetos espaciales en R"
+author: 
+- name:  Susy Echeverría-Londoño 
+  affiliation: Investigadora asociada, Imperial College London
+
+output: 
+  html_document: 
+    highlight: kate
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Descargar datos espaciales biológicos
+
+gbif.org
+
+```{r}
+cycadales <- read.csv("./data/0006554-191105090559680.csv", sep = "\t")
+cycadales <-  cycadales[, c("species", "decimalLatitude", "decimalLongitude", "elevation")]
+nrow(cycadales)
+```
+
+# Limpieza básica de datos
+
+```{r message=FALSE, warning=FALSE}
+### Remover registros sin coordenadas
+inx <- which(!is.na(cycadales$decimalLatitude)&!is.na(cycadales$decimalLongitude))
+cycadales <- cycadales[inx,]
+nrow(cycadales)
+
+library(tidyverse)
+## Con pipes y dplyr
+cycadales<-
+  cycadales %>% 
+  dplyr::filter(!is.na(decimalLatitude)&!is.na(decimalLongitude))
+
+## Remover registros duplicados
+dups=duplicated(cycadales[, c("species", "decimalLongitude", "decimalLatitude", "elevation")])
+cycadales <-cycadales[!dups, ]
+
+nrow(cycadales)
+```
+
+
