@@ -192,6 +192,12 @@ Forma en que los datos espaciales son "aplanados" en un espacio 2D
 
 Fuente: National Ecological Observatory Network (NEON)
 
+<img src="https://es-static.z-dn.net/files/d65/a116ee438d7bb5ed9561a5b46f4991d3.jpg" style="width: 80%"/>
+
+### Comparación de proyecciones
+
+https://map-projections.net/imglist.php
+
 ## Sistema de coordenadas
 <img src="./figs/projections_example_2.png" style="width: 50%"/>
 
@@ -256,6 +262,26 @@ plot(ciudades_geo, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add
 mapview(Col_poly, col.regions = "orange") + mapview(ciudades_geo, zcol = "nombre")
 ```
 
+### Lectura de polígonos
+
+```{r echo=FALSE}
+xfun::pkg_load2(c('base64enc', 'htmltools', 'mime'))
+
+# a single file
+xfun::embed_file('./data/COL_adm.zip')
+```
+
+```{r}
+library(raster)
+Col_shp <- shapefile("./data/COL_adm/COL_adm1.shp")
+plot(Col_shp)
+```
+
+```{r}
+mapview(Col_shp, zcol = "NAME_1") + mapview(ciudades_geo, zcol = "nombre")
+```
+
+
 ## Cambiar la proyección de vectores
 
 Lista de proyecciones disponibles
@@ -285,6 +311,8 @@ plot(ciudades_geo2, col = "blue", pch = 16, axes = TRUE)
 plot(Col_poly, col = "orange", axes = TRUE)
 plot(ciudades_geo2, col = "red", cex = 1 + ciudades_geo$precip/500, pch = 20, add = TRUE)
 ```
+
+https://spatialreference.org/ref/epsg/magna-sirgas-colombia-bogota-zone/
 
 ```{r}
 Col_poly2 <- spTransform(Col_poly, CRS("+proj=laea"))
