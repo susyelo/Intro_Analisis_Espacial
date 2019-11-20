@@ -19,7 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Descargar datos espaciales biológicos
 
-gbif.org
+https://www.gbif.org/
+
+https://github.com/susyelo/Intro_Analisis_Espacial/raw/master/data/0006554-191105090559680.csv
 
 ```{r}
 cycadales <- read.csv("./data/0006554-191105090559680.csv", sep = "\t")

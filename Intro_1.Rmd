@@ -264,12 +264,7 @@ mapview(Col_poly, col.regions = "orange") + mapview(ciudades_geo, zcol = "nombre
 
 ### Lectura de polígonos
 
-```{r echo=FALSE}
-xfun::pkg_load2(c('base64enc', 'htmltools', 'mime'))
-
-# a single file
-xfun::embed_file('./data/COL_adm.zip')
-```
+https://github.com/susyelo/Intro_Analisis_Espacial/blob/master/data/COL_adm.zip
 
 ```{r}
 library(raster)
